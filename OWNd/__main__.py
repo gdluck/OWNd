@@ -1,5 +1,5 @@
 """ OWNd entry point when running it directly from CLI
-(as opposed to imported into another project)
+(as opposed to imported into another project).
 """
 import argparse
 import asyncio
