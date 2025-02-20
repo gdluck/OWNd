@@ -363,7 +363,6 @@ class OWNEvent(OWNMessage):
             elif _who == 13:
                 return OWNGatewayEvent(data)
             elif _who == 14:
-                # fix crash for light+shutter lock config dimension
                 return cls(data)
             elif _who == 15:
                 return OWNCENEvent(data)
