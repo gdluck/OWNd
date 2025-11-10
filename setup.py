@@ -7,7 +7,7 @@ with open("README.md", encoding="utf-8", mode="r") as fh:
 
 setuptools.setup(
     name="OWNd",
-    version="0.7.48",
+    version="0.7.49",
     author="anotherjulien",
     url="https://github.com/anotherjulien/OWNd",
     author_email="yetanotherjulien@gmail.com",
@@ -23,3 +23,4 @@ setuptools.setup(
     install_requires=["aiohttp", "pytz", "python-dateutil"],
     python_requires=">=3.8",
 )
+
