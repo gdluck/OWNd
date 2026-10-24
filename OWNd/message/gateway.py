@@ -23,9 +23,21 @@ def _validate_gateway_clock_values(
 
 
 def _gateway_timezone(values: list[str]) -> str:
-    """Decode an optional OWN timezone, preserving unspecified local time."""
+    """Decode an optional OWN timezone, preserving unspecified local time.
+
+    The non-standard values the firmware oracle wrote, a sign + HHMM
+    ``0530`` and a 24 h+ negative ``124``, also decode as local time: F450,
+    F453, F453AV, F460, F461, H4684, MH200, MH200N and MH202 ACK such clock
+    writes and echo them (own-firmware-oracle ``who13-clock``; F454 and F459
+    ACK ``124`` only), and the F450 reports the stored ``0530`` on later reads
+    (``who13-clock-readback``), so both the echo and the reply must parse.
+    ``raw_timezone`` keeps the value as sent. Other shapes (``200``, ``099``,
+    ``2000``) stay invalid.
+    """
     value = values[3] if len(values) > 3 else ""
     if not value or value == "999":
+        return ""
+    if re.fullmatch(r"[01]\d{3}|1(?:2[4-9]|[3-9]\d)", value):
         return ""
     if re.fullmatch(r"[01]\d{2}", value) is None:
         raise ValueError(f"Invalid gateway timezone: {value!r}")

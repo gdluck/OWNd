@@ -10,6 +10,10 @@ All notable changes to `OWNd` are documented in this file.
   - Canonical `libqtdevices` (`TS10_1_0_23`) coarse `WHAT 2..10` $\leftrightarrow$ fine `1..100%` conversion helpers (`COARSE_PRESET_TO_PERCENT`, `brightness_preset_to_percent`, `percent_to_brightness_preset`), `OWNLightingEvent.is_coarse_dimmer`, `OWNLightingEvent.brightness_preset_percent`, and `OWNLightingCommand.set_brightness(..., coarse=..., gateway=...)` (`#134`).
   - `WHAT 39` end of movement (`*1*39*WHERE##`) from WHO 1 motion detectors: `message_type` `motion_detected` with `motion` `False`, new `OWNLightingEvent.motion_end`, `is_sensor` `True`, `is_on` `None`. It was `unknown_state` `39` before (`MyHOME#777`).
 
+### Fixed
+- **WHO 4 (`OWNHeatingEvent`)**: a Dimension 14 setpoint reply with a `#`-prefixed value (`*#4*#1*14*#0230*1##`, `MyHOME#139`) parses as a 23.0 °C target temperature instead of `None`; `dimension_value` keeps `#0230`.
+- **WHO 13 (`OWNGatewayEvent`, `OWNGatewayCommand`)**: clock echoes and replies carrying the timezone shapes most gateways ACK, sign + HHMM (`0530`) and a negative offset of 24 h or more (`124`), decode as local time (`timezone == ""`, `raw_timezone` as sent) instead of raising `ValueError` (own-firmware-oracle `who13-clock`). `200`, `099`, `2000` and the like are still rejected.
+
 ## [2.0.0b11] - 2026-10-20
 
 ### Added
