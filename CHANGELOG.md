@@ -12,6 +12,8 @@ All notable changes to `OWNd` are documented in this file.
 
 ### Fixed
 - **WHO 4 Dimension 22 is never sent**: `OWNCommandSession.send` (and so `AsyncTcpTransport.send` and `send_to_gateway`) and `AsyncSerialTransport.send` refuse any WHO 4 Dimension 22 frame with `OWNProtocolError(reason="destructive_frame")` before writing: `*#4*ZONE*22##` crashes the gateway's thermoregulation daemon and reboots an F461 (own-firmware-oracle `tools/expected_divergences.yaml` crash frames, live F461 2.0.11). The detector `is_who4_dimension_22()` is public.
+- **WHO 4 (`OWNHeatingCommand.set_central_mode`)**: raises `ValueError` unless `where` is a central-unit `#` address (`#0`, `#0#N`, `#Z`); the plain zone form `*4*311*Z##` is `nack`/`silent` on all 12 emulated gateways (own-firmware-oracle `thermo-zone-mode`, `ownd-pr82-heating`) and on a live F461 2.0.11.
+- **WHO 4 (`OWNHeatingCommand.central_status`)**: the deprecation text said gateways refuse `*#4*WHERE*14##`; six of the twelve emulated gateways forward it to the bus (`trace-corpus`) and it is simply unanswered without a central unit. The warning now points to `status('#0')`. The frame is unchanged.
 
 ## [2.0.0b11] - 2026-10-20
 
