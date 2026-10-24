@@ -86,9 +86,16 @@ def is_who4_dimension_22(frame: object) -> bool:
     return any(
         _WHO4_DIMENSION_22_REGEX.search(chunk) for chunk in str(frame).split("##")
     )
+
+
 # A central-unit address: ``#0`` (99-zone), ``#0#N`` (4-zone), ``#Z`` (a zone
 # addressed through the central unit).
 _WHO4_CENTRAL_WHERE_REGEX = re.compile(r"#[0-9]+(?:#[0-9]+)?")
+
+# A zone (``2``, ``#2``), an actuator of a zone (``2#1``), or a central unit
+# (``#0``, ``#0#1``). ASCII digits only; no ``*``, so no dimension can be
+# injected through the address.
+_WHO4_WHERE_REGEX = re.compile(r"#?[0-9]+(?:#[0-9]+)?")
 
 
 def who4_temperature(raw: str) -> float | None:
@@ -874,6 +881,24 @@ class OWNHeatingCommand(OWNCommand):
     def valves_status(cls, where: str | int) -> OWNHeatingCommand:
         message = cls(f"*#4*{where}*19##")
         message._human_readable_log = f"Requesting climate valve status update for {message._where}{message._interface_log_text}."
+        return message
+
+    @classmethod
+    def actuators_status(cls, where: str | int) -> OWNHeatingCommand:
+        """Request actuator status (``*#4*WHERE*20##``), one reply per actuator.
+
+        ``where`` is a zone (``2``), one actuator (``2#1``), or the central-unit
+        form (``#0``) for every zone. A live F461 2.0.11 (2026-10-23) answers
+        ``*#4*2*20##`` with ``*#4*2#1*20*0##`` (valve, off) and
+        ``*#4*2#2*20*5##`` (fan coil, off), and ``*#4*#0*20##`` with the
+        actuators of every zone. Anything that is not a plain zone, actuator
+        or central address raises ``ValueError``.
+        """
+        where_str = str(where).strip() if where is not None else ""
+        if not _WHO4_WHERE_REGEX.fullmatch(where_str):
+            raise ValueError(f"Invalid zone address: {where}")
+        message = cls(f"*#4*{where_str}*20##")
+        message._human_readable_log = f"Requesting climate actuator status update for {message._where}{message._interface_log_text}."
         return message
 
     @classmethod
