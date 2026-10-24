@@ -20,6 +20,9 @@ All notable changes to `OWNd` are documented in this file.
 - **WHO 4 (`OWNHeatingEvent`)**: a Dimension 14 setpoint reply with a `#`-prefixed value (`*#4*#1*14*#0230*1##`, `MyHOME#139`) parses as a 23.0 °C target temperature instead of `None`; `dimension_value` keeps `#0230`.
 - **WHO 13 (`OWNGatewayEvent`, `OWNGatewayCommand`)**: clock echoes and replies carrying the timezone shapes most gateways ACK, sign + HHMM (`0530`) and a negative offset of 24 h or more (`124`), decode as local time (`timezone == ""`, `raw_timezone` as sent) instead of raising `ValueError` (own-firmware-oracle `who13-clock`). `200`, `099`, `2000` and the like are still rejected.
 
+### Fixed
+- **WHO 1 (`normalize_where`)**: a 4-digit point address of area 0 (`0004`, `0007#4#01`) normalises to its 2-digit form (`04`, `07#4#01`), the one gateways accept and report: `*#1*0001##` / `*1*1*0001##` are `nack`/`silent` on 11 of 12 emulated gateways (own-firmware-oracle `lights-area0`) and on a live F461 2.0.11, and the MH202 reports the light as `01`. Other 4-digit inputs (`0109`, `0010`) stay as typed (`#123`, `MyHOME#147`).
+
 ## [2.0.0b11] - 2026-10-20
 
 ### Added
