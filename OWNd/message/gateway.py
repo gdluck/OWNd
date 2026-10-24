@@ -142,6 +142,7 @@ class OWNGatewayEvent(OWNEvent):
 
         self._kernel_version = None
         self._distribution_version = None
+        self._model_name: str | None = None
 
         _validate_gateway_clock_values(self._dimension, self._dimension_value)
 
@@ -251,6 +252,17 @@ class OWNGatewayEvent(OWNEvent):
                 f"Gateway's distribution version is: {self._distribution_version}."
             )
 
+        elif self._dimension == 27 and self._dimension_value:
+            # Model name as '#'-separated ASCII codes: *#13**27*70#52#54#49##
+            # is "F461" (live F461 2.0.11, 2026-10-23). Not decoded unless
+            # every code is printable ASCII.
+            codes = self._dimension_value[0].split("#")
+            if all(c.isdigit() and 32 <= int(c) < 127 for c in codes):
+                self._model_name = "".join(chr(int(c)) for c in codes)
+                self._human_readable_log = (
+                    f"Gateway's model name is: {self._model_name}."
+                )
+
     @property
     def time(self) -> _dt.time | None:
         """Return the decoded gateway internal time."""
@@ -327,6 +339,11 @@ class OWNGatewayEvent(OWNEvent):
     def distribution_version(self) -> str | None:
         """Return the decoded gateway distribution version string."""
         return self._distribution_version
+
+    @property
+    def model_name(self) -> str | None:
+        """Return the gateway model name of a Dimension 27 reply (e.g. ``"F461"``)."""
+        return self._model_name
 
 
 class OWNGatewayCommand(OWNCommand):

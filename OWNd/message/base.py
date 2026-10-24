@@ -115,6 +115,10 @@ class OWNMessage:
         re.compile(
             r"^\*#(?P<who>4)\*(?P<where>#?\d+)(?P<where_param>(?:#\d+)*)\*(?P<dimension>14)(?P<dimension_param>)(?P<dimension_value>\*#\d+(?:\*\d*)*)##$"  # pylint: disable=line-too-long
         ),
+        # *#13**27*C1#C2#..##: gateway model name as ASCII codes (live F461 2.0.11)
+        re.compile(
+            r"^\*#(?P<who>13)\*(?P<where>)(?P<where_param>)\*(?P<dimension>27)(?P<dimension_param>)(?P<dimension_value>\*\d+(?:#\d+)*)##$"  # pylint: disable=line-too-long
+        ),
     )
 
     """ Base class for all OWN messages """
