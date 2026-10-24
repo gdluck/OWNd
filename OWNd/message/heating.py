@@ -74,6 +74,10 @@ _ZONE_STATES = {
 
 _WHO4_TEMP_REGEX = re.compile(r"^[01][0-9]{3}$")
 
+# A central-unit address: ``#0`` (99-zone), ``#0#N`` (4-zone), ``#Z`` (a zone
+# addressed through the central unit).
+_WHO4_CENTRAL_WHERE_REGEX = re.compile(r"#[0-9]+(?:#[0-9]+)?")
+
 
 def who4_temperature(raw: str) -> float | None:
     """Decode WHO 4 temperature ``SXXX`` (tenths of a degree)."""
@@ -1048,7 +1052,17 @@ class OWNHeatingCommand(OWNCommand):
         would also switch the plant to summer. 311 is the generic automatic
         command libqtdevices sends to zones; on ``#0`` it puts every zone back
         on the central unit's program.
+
+        ``where`` must be a central-unit address (``#0``, ``#0#N``, ``#Z``): the
+        plain zone form (``*4*311*1##``) is ``nack``/``silent`` on all 12
+        emulated gateways (firmware oracle ``thermo-zone-mode`` and
+        ``ownd-pr82-heating``), and a live F461 2.0.11 NACKs ``*4*311*2##``
+        while it ACKs ``*4*311*#2##``.
         """
+        if not _WHO4_CENTRAL_WHERE_REGEX.fullmatch(str(where)):
+            raise ValueError(
+                f"Central unit mode needs a central unit address such as '#0': {where}"
+            )
         mode_map = {
             CLIMATE_MODE_OFF: 303,
             CLIMATE_MODE_HEAT: 1,
@@ -1294,17 +1308,22 @@ class OWNHeatingCommand(OWNCommand):
 
     @classmethod
     def central_status(cls, where: str = "#0") -> OWNHeatingCommand:
-        """Deprecated: builds ``*#4*WHERE*14##``, which gateways refuse.
+        """Deprecated: builds ``*#4*WHERE*14##``, unanswered without a central unit.
 
-        A real MyHomeServer1 3.1.8 (OWNd#77 gateway probe) answers ``*#*0##``
-        (NACK); on an F454 (MyHOME#629) dimension 14 silently timed out while
-        ``status("#0")`` (``*#4*#0##``) answered within 0.13 s. Use
-        ``status(where)`` to poll a central unit. The frame is kept unchanged
-        for existing callers.
+        In the firmware oracle (``trace-corpus``) F453, F453AV, F460, F461,
+        MH200N and MyHomeServer1 forward ``*#4*#0*14##`` to the bus
+        (``nack``/``out``), while F450, F454, F459, H4684, MH200 and MH202
+        refuse it (``nack``/``silent``). Forwarded or not, only a central unit
+        answers it: a live F461 2.0.11 without one NACKs it, a real
+        MyHomeServer1 3.1.8 (OWNd#77 gateway probe) NACKs it, and on an F454
+        (MyHOME#629) it timed out while ``status("#0")`` (``*#4*#0##``)
+        answered within 0.13 s. Use ``status('#0')`` (or ``status(where)``) to
+        poll a central unit. The frame is kept unchanged for existing callers.
         """
         warnings.warn(
-            "OWNHeatingCommand.central_status() builds *#4*WHERE*14##, which gateways "
-            "refuse; use OWNHeatingCommand.status(where) instead",
+            "OWNHeatingCommand.central_status() builds *#4*WHERE*14##, which goes "
+            "unanswered without a central unit; use OWNHeatingCommand.status('#0') "
+            "(OWNHeatingCommand.status(where)) instead",
             DeprecationWarning,
             stacklevel=2,
         )
