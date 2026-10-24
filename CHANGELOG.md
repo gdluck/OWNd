@@ -23,6 +23,9 @@ All notable changes to `OWNd` are documented in this file.
 ### Fixed
 - **WHO 1 (`normalize_where`)**: a 4-digit point address of area 0 (`0004`, `0007#4#01`) normalises to its 2-digit form (`04`, `07#4#01`), the one gateways accept and report: `*#1*0001##` / `*1*1*0001##` are `nack`/`silent` on 11 of 12 emulated gateways (own-firmware-oracle `lights-area0`) and on a live F461 2.0.11, and the MH202 reports the light as `01`. Other 4-digit inputs (`0109`, `0010`) stay as typed (`#123`, `MyHOME#147`).
 
+### Fixed
+- **Profiles (`F461Profile`, `MyHomeServer1Profile`)**: WHO 16 is no longer in `supported_who`: all 86 WHO 16 frames of the firmware oracle are `nack`/`silent` on F461 020011 and MyHomeServer1 028206 (`sound-who16-source` and the other suites), a live F461 2.0.11 NACKs `*#16*0*5##`, and the MyHomeServer1 firmware discards WHO 16 (`MyHOME#459`). WHO 22 stays listed and `supports_audio` is unchanged; MH202 keeps WHO 16.
+
 ## [2.0.0b11] - 2026-10-20
 
 ### Added
